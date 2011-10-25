@@ -47,7 +47,7 @@ def checkCPUIntel():
 					print "Arch: Penryn"
 					RHEV3_SUPPORTED = True
 
-				if model == "22":
+				if model == "22" or model == "15":
 					print "Arch: Conroe"
 					RHEV3_SUPPORTED = True
 
