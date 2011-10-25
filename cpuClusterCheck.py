@@ -52,7 +52,7 @@ def checkCPUIntel():
 					RHEV3_SUPPORTED = True
 
 				if model == "37" or model == "44" or model == "47":
-					print "Westmere"
+					print "Arch: Westmere"
 					RHEV3_SUPPORTED = True
 
 			if RHEV3_SUPPORTED == True:
