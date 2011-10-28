@@ -26,13 +26,13 @@ sys.path.append("/usr/share/vdsm")
 try:
 	import vdscli
 except:
-	print "Cannot import vdscli, please contact Red Hat support"
+	print "Cannot import vdscli, please verify!"
 	sys.exit(1)
 
 try:
 	import vdsClient
 except:
-	print "Cannot import vdsClient, please contact Red Hat support"
+	print "Cannot import vdsClient, please verify!"
 	sys.exit(1)
 
 
@@ -73,7 +73,7 @@ class getISCSIid:
 			print "You must be root to run this script."
 			sys.exit(2)
 
-	def checkSPM(self):
+	def getId(self):
 
 		found = False 
 
@@ -151,4 +151,4 @@ if __name__ == "__main__":
 	VE.iqn    = iqnaddress
 	VE.useSSL = ssl
 
-	VE.checkSPM()
+	VE.getId()
