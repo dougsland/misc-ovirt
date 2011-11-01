@@ -36,20 +36,46 @@ for item in list:
 	#print "\txsi type: %s" % (item.attrib['{http://www.w3.org/2001/XMLSchema-instance}type'])
 
 	print "\tName: %s"			% (item.find("Name").text)
-	print "\tTemplateId: %s"		% (item.find("TemplateId").text)
-	print "\tTemplateName: %s"		% (item.find("TemplateName").text)
+
+	if (item.find("TemplateId")):
+		print "\tTemplateId: %s"		% (item.find("TemplateId").text)
+
+	if (item.find("TemplateName")):
+		print "\tTemplateName: %s"		% (item.find("TemplateName").text)
+
 	print "\tDescription: %s"		% (item.find("Description").text)
-	print "\tDomain: %s"			% (item.find("Domain").text)
+
+	if (item.find("Domain")):
+		print "\tDomain: %s"			% (item.find("Domain").text)
+
 	print "\tCreation Date: %s"		% (item.find("CreationDate").text)
-	print "\tIsInitilized: %s"		% (item.find("IsInitilized").text)
-	print "\tIsAutoSuspend: %s"		% (item.find("IsAutoSuspend").text)
-	print "\tTimeZone: %s"			% (item.find("TimeZone").text)
-	print "\tIsStateless: %s"		% (item.find("IsStateless").text)
-	print "\tOrigin: %s"			% (item.find("Origin").text)
-	print "\tdefault_boot_sequence: %s"	% (item.find("default_boot_sequence").text)
+
+	if (item.find("IsInitilized")):
+		print "\tIsInitilized: %s"		% (item.find("IsInitilized").text)
+
+	if (item.find("IsAutoSuspend")):
+		print "\tIsAutoSuspend: %s"		% (item.find("IsAutoSuspend").text)
+
+	if (item.find("TimeZone")):
+		print "\tTimeZone: %s"			% (item.find("TimeZone").text)
+
+	if (item.find("IsStateless")):
+		print "\tIsStateless: %s"		% (item.find("IsStateless").text)
+
+	if (item.find("Origin")):
+		print "\tOrigin: %s"			% (item.find("Origin").text)
+
+	
+	if (item.find("default_boot_sequence")):
+		print "\tdefault_boot_sequence: %s"	% (item.find("default_boot_sequence").text)
+
 	print "\tVmType: %s"			% (item.find("VmType").text)
-	print "\tDefaultDisplayType: %s"	% (item.find("DefaultDisplayType").text)
-	print "\tMinAllocatedMem: %s"		% (item.find("MinAllocatedMem").text)
+
+	if (item.find("DefaultDisplayType")):
+		print "\tDefaultDisplayType: %s"	% (item.find("DefaultDisplayType").text)
+
+	if (item.find("MinAllocatedMem")):
+		print "\tMinAllocatedMem: %s"		% (item.find("MinAllocatedMem").text)
 
 	listCS = tree.findall("Content/Section")
 	for item in listCS:
