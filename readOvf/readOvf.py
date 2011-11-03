@@ -37,44 +37,44 @@ for item in list:
 
 	print "\tName: %s"			% (item.find("Name").text)
 
-	if (item.find("TemplateId")):
+	if (item.find("TemplateId")) != None:
 		print "\tTemplateId: %s"		% (item.find("TemplateId").text)
 
-	if (item.find("TemplateName")):
+	if (item.find("TemplateName")) != None:
 		print "\tTemplateName: %s"		% (item.find("TemplateName").text)
 
 	print "\tDescription: %s"		% (item.find("Description").text)
 
-	if (item.find("Domain")):
+	if (item.find("Domain")) != None:
 		print "\tDomain: %s"			% (item.find("Domain").text)
 
 	print "\tCreation Date: %s"		% (item.find("CreationDate").text)
 
-	if (item.find("IsInitilized")):
+	if (item.find("IsInitilized")) != None:
 		print "\tIsInitilized: %s"		% (item.find("IsInitilized").text)
 
-	if (item.find("IsAutoSuspend")):
+	if (item.find("IsAutoSuspend")) != None:
 		print "\tIsAutoSuspend: %s"		% (item.find("IsAutoSuspend").text)
 
-	if (item.find("TimeZone")):
+	if (item.find("TimeZone")) != None:
 		print "\tTimeZone: %s"			% (item.find("TimeZone").text)
 
-	if (item.find("IsStateless")):
+	if (item.find("IsStateless")) != None:
 		print "\tIsStateless: %s"		% (item.find("IsStateless").text)
 
-	if (item.find("Origin")):
+	if (item.find("Origin")) != None:
 		print "\tOrigin: %s"			% (item.find("Origin").text)
 
 	
-	if (item.find("default_boot_sequence")):
+	if (item.find("default_boot_sequence")) != None:
 		print "\tdefault_boot_sequence: %s"	% (item.find("default_boot_sequence").text)
 
 	print "\tVmType: %s"			% (item.find("VmType").text)
 
-	if (item.find("DefaultDisplayType")):
+	if (item.find("DefaultDisplayType")) != None:
 		print "\tDefaultDisplayType: %s"	% (item.find("DefaultDisplayType").text)
 
-	if (item.find("MinAllocatedMem")):
+	if (item.find("MinAllocatedMem")) != None:
 		print "\tMinAllocatedMem: %s"		% (item.find("MinAllocatedMem").text)
 
 	listCS = tree.findall("Content/Section")
