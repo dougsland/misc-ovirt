@@ -38,7 +38,7 @@ class Operations:
 
 		print "Backuping database: %s" % (bkpPath)
 		cmd = "pg_dump -C -E UTF8 --column-inserts" \
-			" --disable-dollar-quoting --disable-triggers -U postgres --format=p -f " + "\"" + bkpPath + "\"" + "rhevm"
+			" --disable-dollar-quoting --disable-triggers -U postgres --format=p -f " + "\"" + bkpPath + "\"" + " rhevm"
 
 		ret = self.runCmd(cmd)
 		if ret != 0:
