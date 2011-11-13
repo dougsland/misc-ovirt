@@ -22,11 +22,14 @@
 import psycopg2
 import sys
 
+DBPASS = "my_db_pass"
+
 def removeHost(host):  
+
 	try:
-		con = psycopg2.connect("dbname='rhevm' user='postgres' password='senha123'")
+		con = psycopg2.connect("dbname='rhevm' user='postgres' password='" + DBPASS + "'")
 	except:
-		print "aborting.. unable to connect to the database"
+		print "aborting.. unable to connect to the database.. bad password?"
 		sys.exit(-1)
 
 	cursor = con.cursor()
@@ -78,6 +81,14 @@ if __name__ == "__main__":
 	if len(sys.argv) != 2:
         	print "%s HOST" % (sys.argv[0])
 		sys.exit(-1)
+
+
+	print "This is *NOT* supported operation"
+	ans = raw_input("Are you sure you want to continue? (yes/no) ")
+
+	if ans != "yes":
+		print "aborting..."
+		sys.exit(2)
 
 	print "Removing host %s..." % (sys.argv[1])
 	removeHost(sys.argv[1])
