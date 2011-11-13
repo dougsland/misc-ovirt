@@ -56,6 +56,7 @@ class Operations:
 		if ret != 0:
 			print "cannot restore rhevm database, please verify!"
 			print "Possible options:"
+			print "\t - have you provided a sql file ?"
 			print "\t - psql command not installed?"
 			print "\t - there is no rhevm database"
 			print "\t - are you running postgresql service?"
@@ -98,7 +99,7 @@ class Operations:
 
 		print "Example:"
 		print "\t" + sys.argv[0] + " --backup --path=/tmp"
-		print "\t" + sys.argv[0] + " --restore --path=/tmp"
+		print "\t" + sys.argv[0] + " --restore --path=/tmp/dump_RHEVDB_BACKUP_2011-11-13-05:29.sql"
 		sys.exit(0)
 
 if __name__ == "__main__":
@@ -137,11 +138,16 @@ if __name__ == "__main__":
 	if run.selectedOption == None or run.path == None:
 		run.usage()
 
-	# Stop Jbossas service
-	run.stopJboss()
-
 	if os.path.exists(run.path) == False:
 		print "path %s is doesn't exist" % (run.path)
+
+	if run.selectedOption == "restore" and os.path.isdir(run.path) == True:
+		print "for restore mode, you must provide a sql file"
+		sys.exit(-1)
+		
+
+	# Stop Jbossas service
+	run.stopJboss()
 
 	if run.selectedOption == "backup":
 		run.backup(run.path)
