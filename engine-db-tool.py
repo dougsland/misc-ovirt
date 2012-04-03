@@ -39,9 +39,8 @@ class Operations:
 		print "Backuping database: %s" % (bkpPath)
 		cmd = "pg_dump -C -E UTF8 --column-inserts" \
 			" --disable-dollar-quoting --disable-triggers -U postgres --format=p -f " + "\"" + bkpPath + "\"" + " engine"
-
 		ret = self.runCmd(cmd)
-		if ret != 0:
+		if ret[0] != 0:
 			print "cannot backup engine database, please verify!"
 			print "Possible options:"
 			print "\t - pg_dump command not installed?"
@@ -50,10 +49,16 @@ class Operations:
 			sys.exit(-1)
 
 	def restore(self, sqlFile):
+		cmd = "/usr/bin/dropdb -U postgres engine"
+		self.runCmd(cmd)
+
+		cmd = "/usr/bin/createdb -U postgres engine"
+		self.runCmd(cmd)
+
 		print "Restoring database: %s" % (sqlFile)
-		cmd = "psql -U postgres -d engine -w < " + "\"" + sqlFile + "\""
+		cmd = "/usr/bin/psql -U postgres -d engine -w < " + "\"" + sqlFile + "\""
 		ret = self.runCmd(cmd)
-		if ret != 0:
+		if ret[0] != 0:
 			print "cannot restore engine database, please verify!"
 			print "Possible options:"
 			print "\t - have you provided a sql file ?"
@@ -67,24 +72,26 @@ class Operations:
 		(output, error) = process.communicate()
 
 		# Let's return the exit value
-		return process.poll()
+		return process.poll(), output, error
 
 	def stopJboss(self):
-		print "Stopping jbossas service..."
-		self.runCmd("/sbin/service jbossas stop")
-		ret = self.runCmd("/sbin/service jbossas status")
-		if ret != 0:
-			print "jbossas still running, please stop it before continue!"
+		print "Stopping jboss-as service..."
+		self.runCmd("/bin/systemctl stop jboss-as.service")
+		ret = self.runCmd("/bin/systemctl status jboss-as.service")
+
+                if not "Active: inactive" in ret[1]:
+			print "jboss-as still running, please stop it before continue!"
 			sys.exit(-1)
 
 		return 0
 
 	def startJboss(self):
-		print "Starting jbossas service..."
-		self.runCmd("/sbin/service jbossas start")
-		ret = self.runCmd("/sbin/service jbossas status")
-		if ret != 0:
-			print "cannot start jbossas service, please verify!"
+		print "Starting jboss-as service..."
+		self.runCmd("/bin/systemctl start jboss-as.service")
+		ret = self.runCmd("/bin/systemctl status jboss-as.service")
+
+                if not "Active: active" in ret[1]:
+			print "cannot start jboss-as service, please verify!"
 			sys.exit(-1)
 
 		return 0
@@ -158,3 +165,4 @@ if __name__ == "__main__":
 	run.startJboss()
 
 	print "Done"
+
