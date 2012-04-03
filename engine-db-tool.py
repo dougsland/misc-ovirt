@@ -34,7 +34,7 @@ class Operations:
 	def backup(self, path):
 		currTime = datetime.datetime.now()
 
-		bkpPath = path +  "/dump_RHEVDB_BACKUP_" + currTime.strftime("%Y-%m-%d-%H:%M") + ".sql"
+		bkpPath = path +  "/dump_ENGINEDB_BACKUP_" + currTime.strftime("%Y-%m-%d-%H:%M") + ".sql"
 
 		print "Backuping database: %s" % (bkpPath)
 		cmd = "pg_dump -C -E UTF8 --column-inserts" \
@@ -106,7 +106,7 @@ class Operations:
 
 		print "Example:"
 		print "\t" + sys.argv[0] + " --backup --path=/tmp"
-		print "\t" + sys.argv[0] + " --restore --path=/tmp/dump_RHEVDB_BACKUP_2011-11-13-05:29.sql"
+		print "\t" + sys.argv[0] + " --restore --path=/tmp/dump_ENGINEDB_BACKUP_2011-11-13-05:29.sql"
 		sys.exit(0)
 
 if __name__ == "__main__":
