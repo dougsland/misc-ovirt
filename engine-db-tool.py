@@ -1,6 +1,6 @@
 #!/usr/bin/python
 #
-# Copyright (C) 2011
+# Copyright (C) 2011-2012
 #
 # Douglas Schilling Landgraf <dougsland@redhat.com>
 #
