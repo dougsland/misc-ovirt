@@ -22,14 +22,15 @@
 import sys
 import string
 
-def checkCPUIntel():
+def checkCPUIntel(cpuFileDescriptor):
 
 	RHEV3_SUPPORTED = False
 	cpu_family = ""
 	model = "0"
 
-	fd = open("/proc/cpuinfo", "r")
-	for line in fd.readlines():
+	cpuFileDescriptor.seek(0)
+
+	for line in cpuFileDescriptor.readlines():
 		if "cpu family\t" in line:
 			value = line.split(':')
 			cpu_family = value[1].strip('\n').strip(' ')
@@ -61,18 +62,22 @@ def checkCPUIntel():
 				print "It seems your processor is not supported by RHEV3 Cluster."
 				print "Please try RHEV2 Cluster for this host or contact Red Hat Support."
 
+			cpuFileDescriptor.close()
 			sys.exit(0)
 
+	cpuFileDescriptor.close()
+	sys.exit(1)
 
-def checkCPUAMD():
+
+def checkCPUAMD(cpuFileDescriptor):
 
 	RHEV3_SUPPORTED = False
 	cpu_family = ""
 	model = "0"
 
-	fd = open("/proc/cpuinfo", "r")
+	cpuFileDescriptor.seek(0)
 
-	for line in fd.readlines():
+	for line in cpuFileDescriptor.readlines():
 		if "cpu family\t" in line:
 			value = line.split(':')
 			cpu_family = value[1].strip('\n').strip(' ')
@@ -91,15 +96,27 @@ def checkCPUAMD():
 			print "It seems your processor is not supported by RHEV3 Cluster."
 			print "Please try RHEV2 Cluster for this host or contact Red Hat Support."
 
+		cpuFileDescriptor.close()
 		sys.exit(0)
+
+	cpuFileDescriptor.close()
+	sys.exit(1)
 
 if __name__ == '__main__':
 
-	fd = open("/proc/cpuinfo", "r")
+	try:
+		fd = open("/proc/cpuinfo", "r")
+	except IOError:
+		print "Error: unable to open /proc/cpuinfo"
+		sys.exit(1)
 
 	for line in fd.readlines():
 		if "vendor_id" in line:
 			if "GenuineIntel" in line:
-				checkCPUIntel()
+				checkCPUIntel(fd)
 			if "AuthenticAMD" in line:
-				checkCPUAMD()
+				checkCPUAMD(fd)
+
+	print "Error: unsupported vendor_id"
+	fd.close()
+	sys.exit(1)
