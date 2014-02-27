@@ -123,7 +123,7 @@ def collect_bugzilla_data():
 
                 # We can have more then one commit per bug, no add twice into
                 # wiki
-                if bug_id in bz_data.values():
+                if any(item['id'] == bug_id for item in list_bz_data):
                     continue
 
                 # Set target to correct git branch
