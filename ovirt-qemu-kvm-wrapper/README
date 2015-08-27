@@ -6,6 +6,9 @@ qemu-kvm-modified is a wrapper to the original qemu-kvm
 to configure tls-ciphers during (or other features)
 virtual machines start via oVirt Engine.
 
+ATTENTION: For live migration work with qemu-kvm-modified
+all hosts must have qemu-kvm-modified and 50_emulator installed
+
 Example setting qemu-kvm-modified in oVirt Node
 -----------------------------------------------------
 
@@ -18,17 +21,17 @@ In the Text User Interface (TUI) press F2 to go to console
 2) Copy the vdsm hook 50_emulator to /usr/libexec/vdsm/hooks/before_vm_start
 
 # cp 50_emulator /usr/libexec/vdsm/hooks/before_vm_start
-# chcon --reference /usr/libexec/vdsm/hooks/before_vm_start/50_vhostmd /usr/libexec/vdsm/hooks/before_vm_start/50_emulator
-# chmod +x /usr/libexec/vdsm/hooks/before_vm_start/50_emulator
-# persist /usr/libexec/vdsm/hooks/before_vm_start/50_emulator
+chcon --reference /usr/libexec/vdsm/hooks/before_vm_start/50_vhostmd /usr/libexec/vdsm/hooks/before_vm_start/50_emulator
+chmod +x /usr/libexec/vdsm/hooks/before_vm_start/50_emulator
+persist /usr/libexec/vdsm/hooks/before_vm_start/50_emulator
 
 3) Copy the qemu-kvm-modified wrapper to /usr/libexec/vdsm/hooks/qemu-kvm-wrapper
 
-# mkdir /usr/libexec/vdsm/hooks/qemu-kvm-wrapper
-# cp qemu-kvm-modified /usr/libexec/vdsm/hooks/qemu-kvm-wrapper
-# chcon --reference /usr/libexec/qemu-kvm  /usr/libexec/vdsm/hooks/qemu-kvm-wrapper/qemu-kvm-modified
-# chmod +x /usr/libexec/vdsm/hooks/qemu-kvm-wrapper/qemu-kvm-modified
-# persist /usr/libexec/vdsm/hooks/qemu-kvm-wrapper/qemu-kvm-modified
+mkdir /usr/libexec/vdsm/hooks/qemu-kvm-wrapper
+cp qemu-kvm-modified /usr/libexec/vdsm/hooks/qemu-kvm-wrapper
+chcon --reference /usr/libexec/qemu-kvm  /usr/libexec/vdsm/hooks/qemu-kvm-wrapper/qemu-kvm-modified
+chmod +x /usr/libexec/vdsm/hooks/qemu-kvm-wrapper/qemu-kvm-modified
+persist /usr/libexec/vdsm/hooks/qemu-kvm-wrapper/qemu-kvm-modified
 
 #4 Stop and Start the virtual machine via oVirt Engine
 
