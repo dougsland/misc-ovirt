@@ -1,0 +1,77 @@
+#!/usr/bin/python
+#
+# Copyright (C) 2015
+#
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, version 2 of the License.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+
+import signal
+import subprocess
+import sys
+import os
+
+from argparse import ArgumentParser, SUPPRESS
+
+
+class qemuWrapper(object):
+    def __init__(self, args, opts):
+        self.args = args
+        self.opts = opts
+
+        # Define the command (qemu-kvm) that will be triggered
+        # by this wrapper
+        self.emulator_cmd = ['/usr/libexec/qemu-kvm']
+
+        # tls-ciphers to be used with spice argument.
+        # NOTE: self.tls_ciphers requires the , in the end of string
+        self.tls_ciphers = "tls-ciphers=ECDH+AESGCM:DH+AESGCM:ECDH+AES256" \
+                           ":DH+AES256:ECDH+AES128:DH+AES:ECDH+3DES:DH+3DES" \
+                           "RSA+AESGCM:RSA+AES:RSA+3DES:!aNULL:!MD5:!DSS,"
+
+    def signal_handler(self, signal, frame):
+        """
+        When the virtual machine receives a shutdown
+        this process receives SIGTERM (15) and we must
+        send the same signal to qemu-kvm
+        """
+        os.killpg(self.proc.pid, 15)
+
+    def execute(self):
+        signal.signal(signal.SIGTERM, self.signal_handler)
+
+        if self.opts:
+            self.emulator_cmd.extend(self.opts)
+
+        if self.args.spice and self.args.spice is not None:
+            self.emulator_cmd.extend(["-spice"])
+            spice_opts = self.tls_ciphers
+            spice_opts += " ".join(self.args.spice)
+            self.emulator_cmd.extend([spice_opts])
+
+        self.proc = subprocess.Popen(
+            self.emulator_cmd,
+            shell=False,
+            preexec_fn=os.setsid
+        )
+        out, err = self.proc.communicate()
+
+        return self.proc.returncode
+
+if __name__ == "__main__":
+
+    parser = ArgumentParser(usage=SUPPRESS, add_help=False)
+    parser.add_argument("-spice", required=False, action='append', nargs='?')
+    args, opts = parser.parse_known_args()
+
+    try:
+        q = qemuWrapper(args, opts)
+    except:
+        print("Cannot trigger the emulator wrapper!")
+
+    sys.exit(q.execute())

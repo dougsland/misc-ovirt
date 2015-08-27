@@ -1,0 +1,38 @@
+#!/usr/bin/python
+#
+# Copyright 2015 Red Hat, Inc.
+#
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 2 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, write to the Free Software
+# Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
+#
+# Refer to the README and COPYING files for full details of the license
+#
+# After installing this hook the virtual machines started by oVirt
+# engine will look for qemu-kvm-modified script/binary instead of
+# qemu-kvm. This is useful for act like a wrapper to qemu-kvm
+# or even change in fact the emulator.
+import hooking
+
+emulator_path = "/usr/libexec/vdsm/hooks/qemu-kvm-wrapper/qemu-kvm-modified"
+
+domxml = hooking.read_domxml()
+devices_element = domxml.getElementsByTagName('devices')[0]
+
+emulator_element = domxml.createElement('emulator')
+emulator_node = domxml.createTextNode(emulator_path)
+emulator_element.appendChild(emulator_node)
+
+devices_element.appendChild(emulator_element)
+
+hooking.write_domxml(domxml)

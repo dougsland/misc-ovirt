@@ -1,0 +1,56 @@
+D-I-S-C-L-A-M-E-R
+---------------------------------------
+This is not origially designed by RHEV product.
+
+qemu-kvm-modified is a wrapper to the original qemu-kvm
+to configure tls-ciphers during (or other features)
+virtual machines start via oVirt Engine.
+
+Example setting qemu-kvm-modified in oVirt Node
+-----------------------------------------------------
+
+1) Remount FileSystem for reading and writing and enable ssh
+
+In the Text User Interface (TUI) press F2 to go to console
+# mount -o remount,rw /
+# /usr/libexec/ovirt-config-password (to configure ssh and root pwd to scp)
+
+2) Copy the vdsm hook 50_emulator to /usr/libexec/vdsm/hooks/before_vm_start
+
+# cp 50_emulator /usr/libexec/vdsm/hooks/before_vm_start
+# chcon --reference /usr/libexec/vdsm/hooks/before_vm_start/50_vhostmd /usr/libexec/vdsm/hooks/before_vm_start/50_emulator
+# chmod +x /usr/libexec/vdsm/hooks/before_vm_start/50_emulator
+# persist /usr/libexec/vdsm/hooks/before_vm_start/50_emulator
+
+3) Copy the qemu-kvm-modified wrapper to /usr/libexec/vdsm/hooks/qemu-kvm-wrapper
+
+# mkdir /usr/libexec/vdsm/hooks/qemu-kvm-wrapper
+# cp qemu-kvm-modified /usr/libexec/vdsm/hooks/qemu-kvm-wrapper
+# chcon --reference /usr/libexec/qemu-kvm  /usr/libexec/vdsm/hooks/qemu-kvm-wrapper/qemu-kvm-modified
+# chmod +x /usr/libexec/vdsm/hooks/qemu-kvm-wrapper/qemu-kvm-modified
+# persist /usr/libexec/vdsm/hooks/qemu-kvm-wrapper/qemu-kvm-modified
+
+#4 Stop and Start the virtual machine via oVirt Engine
+
+Will trigger...
+----------------------------------------------
+
+[WRAPPER]
+
+qemu     20133  0.1  0.0  42416  5292 ?        S    02:15   0:00 /usr/bin/python /usr/libexec/vdsm/hooks/qemu-kvm-wrapper/qemu-kvm-modified -name supervm1 -S -M rhel6.5.0 -cpu SandyBridge -enable-kvm -m 1024 -realtime mlock=off -smp 1,maxcpus=16,sockets=16,cores=1,threads=1 -uuid b7910bae-2ad1-45fa-ad73-c82a01666200 -smbios type=1,manufacturer=Red Hat,product=RHEV Hypervisor,version=6.7-20150826.0.el6ev,serial=A2FFC0AA-EC96-4A0A-8BCE-4169E6B72637,uuid=b7910bae-2ad1-45fa-ad73-c82a01666200 -nodefconfig -nodefaults -chardev socket,id=charmonitor,path=/var/lib/libvirt/qemu/supervm1.monitor,server,nowait -mon chardev=charmonitor,id=monitor,mode=control -rtc base=2015-08-27T02:15:03,driftfix=slew -no-kvm-pit-reinjection -no-shutdown -device piix3-usb-uhci,id=usb,bus=pci.0,addr=0x1.0x2 -device virtio-scsi-pci,id=scsi0,bus=pci.0,addr=0x3 -device virtio-serial-pci,id=virtio-serial0,max_ports=16,bus=pci.0,addr=0x4 -drive file=/rhev/data-center/mnt/192.168.1.103:_nfs_z2/ce3769f2-5c78-45e0-a72d-50d60d0bd111/images/11111111-1111-1111-1111-111111111111/rhev-hypervisor7-7.1-20150813.0.iso,if=none,media=cdrom,id=drive-ide0-1-0,readonly=on,format=raw,serial= -device ide-drive,bus=ide.1,unit=0,drive=drive-ide0-1-0,id=ide0-1-0,bootindex=1 -drive file=/rhev/data-center/00000002-0002-0002-0002-000000000277/538a9db6-0691-425c-a8e0-a54fad5bc310/images/77088dc2-8a88-4e6c-a43c-02c3e1509997/a55921f8-e798-4bfa-b535-56c3e89fb08e,if=none,id=drive-virtio-disk0,format=raw,serial=77088dc2-8a88-4e6c-a43c-02c3e1509997,cache=none,werror=stop,rerror=stop,aio=threads -device virtio-blk-pci,scsi=off,bus=pci.0,addr=0x5,drive=drive-virtio-disk0,id=virtio-disk0,bootindex=2 -chardev socket,id=charchannel0,path=/var/lib/libvirt/qemu/channels/b7910bae-2ad1-45fa-ad73-c82a01666200.com.redhat.rhevm.vdsm,server,nowait -device virtserialport,bus=virtio-serial0.0,nr=1,chardev=charchannel0,id=channel0,name=com.redhat.rhevm.vdsm -chardev socket,id=charchannel1,path=/var/lib/libvirt/qemu/channels/b7910bae-2ad1-45fa-ad73-c82a01666200.org.qemu.guest_agent.0,server,nowait -device virtserialport,bus=virtio-serial0.0,nr=2,chardev=charchannel1,id=channel1,name=org.qemu.guest_agent.0 -chardev spicevmc,id=charchannel2,name=vdagent -device virtserialport,bus=virtio-serial0.0,nr=3,chardev=charchannel2,id=channel2,name=com.redhat.spice.0 -spice tls-port=5900,addr=192.168.122.30,x509-dir=/etc/pki/vdsm/libvirt-spice,tls-channel=main,tls-channel=display,tls-channel=inputs,tls-channel=cursor,tls-channel=playback,tls-channel=record,tls-channel=smartcard,tls-channel=usbredir,seamless-migration=on -k en-us -vga qxl -global qxl-vga.ram_size=67108864 -global qxl-vga.vram_size=33554432 -device virtio-balloon-pci,id=balloon0,bus=pci.0,addr=0x6 -msg timestamp=on
+
+[QEMU-KVM after wrapper]
+qemu     20134 24.4  0.3 1508652 43792 ?       Ssl  02:15   0:06 /usr/libexec/qemu-kvm -name supervm1 -S -M rhel6.5.0 -cpu SandyBridge -enable-kvm -m 1024 -realtime mlock=off -smp 1,maxcpus=16,sockets=16,cores=1,threads=1 -uuid b7910bae-2ad1-45fa-ad73-c82a01666200 -smbios type=1,manufacturer=Red Hat,product=RHEV Hypervisor,version=6.7-20150826.0.el6ev,serial=A2FFC0AA-EC96-4A0A-8BCE-4169E6B72637,uuid=b7910bae-2ad1-45fa-ad73-c82a01666200 -nodefconfig -nodefaults -chardev socket,id=charmonitor,path=/var/lib/libvirt/qemu/supervm1.monitor,server,nowait -mon chardev=charmonitor,id=monitor,mode=control -rtc base=2015-08-27T02:15:03,driftfix=slew -no-kvm-pit-reinjection -no-shutdown -device piix3-usb-uhci,id=usb,bus=pci.0,addr=0x1.0x2 -device virtio-scsi-pci,id=scsi0,bus=pci.0,addr=0x3 -device virtio-serial-pci,id=virtio-serial0,max_ports=16,bus=pci.0,addr=0x4 -drive file=/rhev/data-center/mnt/192.168.1.103:_nfs_z2/ce3769f2-5c78-45e0-a72d-50d60d0bd111/images/11111111-1111-1111-1111-111111111111/rhev-hypervisor7-7.1-20150813.0.iso,if=none,media=cdrom,id=drive-ide0-1-0,readonly=on,format=raw,serial= -device ide-drive,bus=ide.1,unit=0,drive=drive-ide0-1-0,id=ide0-1-0,bootindex=1 -drive file=/rhev/data-center/00000002-0002-0002-0002-000000000277/538a9db6-0691-425c-a8e0-a54fad5bc310/images/77088dc2-8a88-4e6c-a43c-02c3e1509997/a55921f8-e798-4bfa-b535-56c3e89fb08e,if=none,id=drive-virtio-disk0,format=raw,serial=77088dc2-8a88-4e6c-a43c-02c3e1509997,cache=none,werror=stop,rerror=stop,aio=threads -device virtio-blk-pci,scsi=off,bus=pci.0,addr=0x5,drive=drive-virtio-disk0,id=virtio-disk0,bootindex=2 -chardev socket,id=charchannel0,path=/var/lib/libvirt/qemu/channels/b7910bae-2ad1-45fa-ad73-c82a01666200.com.redhat.rhevm.vdsm,server,nowait -device virtserialport,bus=virtio-serial0.0,nr=1,chardev=charchannel0,id=channel0,name=com.redhat.rhevm.vdsm -chardev socket,id=charchannel1,path=/var/lib/libvirt/qemu/channels/b7910bae-2ad1-45fa-ad73-c82a01666200.org.qemu.guest_agent.0,server,nowait -device virtserialport,bus=virtio-serial0.0,nr=2,chardev=charchannel1,id=channel1,name=org.qemu.guest_agent.0 -chardev spicevmc,id=charchannel2,name=vdagent -device virtserialport,bus=virtio-serial0.0,nr=3,chardev=charchannel2,id=channel2,name=com.redhat.spice.0 -k en-us -vga qxl -global qxl-vga.ram_size=67108864 -global qxl-vga.vram_size=33554432 -device virtio-balloon-pci,id=balloon0,bus=pci.0,addr=0x6 -msg timestamp=on -spice tls-ciphers=ECDH+AESGCM:DH+AESGCM:ECDH+AES256:DH+AES256:ECDH+AES128:DH+AES:ECDH+3DES:DH+3DESRSA+AESGCM:RSA+AES:RSA+3DES:!aNULL:!MD5:!DSS,tls-port=5900,addr=192.168.122.30,x509-dir=/etc/pki/vdsm/libvirt-spice,tls-channel=main,tls-channel=display,tls-channel=inputs,tls-channel=cursor,tls-channel=playback,tls-channel=record,tls-channel=smartcard,tls-channel=usbredir,seamless-migration=on
+
+
+Useful logs
+----------------------------------------------
+(node) /var/log/vdsm/vdsm.log
+(engine) /var/log/ovirt-engine/engine.log
+
+Disabling the qemu-kvm-modified
+-------------------------------------------------
+# unpersist /usr/libexec/vdsm/hooks/before_vm_start/50_emulator
+# unpersist /usr/libexec/vdsm/qemu-kvm-wrapper/qemu-kvm-modified
+# rm -f /usr/libexec/vdsm/hooks/before_vm_start/50_emulator
+# rm -fr /usr/libexec/vdsm/qemu-kvm-wrapper/
