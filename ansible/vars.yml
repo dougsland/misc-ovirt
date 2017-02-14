@@ -1,0 +1,8 @@
+# Engine:
+url: https://engine.localdomain/ovirt-engine/api
+username: admin@internal
+password: T0pSecret!
+insecure: true
+
+# Datacenter name:
+dc_name: Default

@@ -1,0 +1,37 @@
+---
+- hosts: localhost
+  connection: local
+
+  vars_files:
+    - vars.yml
+
+  tasks:
+    - name: Obtain SSO token
+      ovirt_auth:
+        url: "{{ url }}"
+        username: "{{ username }}"
+        password: "{{ password }}"
+        insecure: "{{ insecure }}"
+
+    - name: Add host 1
+      ovirt_hosts:
+        auth: "{{ ovirt_auth }}"
+        name: myhost
+        address: 192.168.122.14
+        password: T0pSecret!
+        cluster: Default
+        override_iptables: true
+
+    - name: Add host 2
+      ovirt_hosts:
+        auth: "{{ ovirt_auth }}"
+        name: myhost2
+        address: 192.168.122.2
+        password: T0pSecret!
+        cluster: Default
+        override_iptables: true
+
+    - name: Revoke SSO token
+      ovirt_auth:
+        state: absent
+        ovirt_auth: "{{ ovirt_auth }}"

@@ -1,0 +1,21 @@
+First:
+   Install oVirt Node Next with the kickstart-autoinstall-ovirt-node.ks (change the default password and set network)
+
+Second:
+   To work with hosts via ansible it's required version 2.3 and should be released at least 1 month ahead from today (Feb 14 2017)
+
+    From any machine set Ansible 2.3:
+
+    1. Clone tree and setup the environment:
+      $ git clone https://github.com/ansible/ansible.git
+      $ cd ansible
+      $ source hacking/env-setup
+
+    2. Install requirements:
+      $ sudo pip install pyyaml jinja2 nose pytest passlib pycrypto
+      $ sudo pip install ovirt-engine-sdk-python==4.0.4 
+
+    3. Adjust vars.yml and register-hosts.yml
+
+    4. Register the hosts to Engine
+      $ ansible-playbook register-hosts.yml 
