@@ -4,6 +4,8 @@ If you are running the script inside the engine machine no need to use any argum
 the tool will identify engine database information from /etc/ovirt-engine/engine.conf.d/10-setup-database.conf:
 
 ``` sh
+Example 1, no issues found:
+
 # chmod +x pre-upgrade-tool
 # ./pre-upgrade-tool
 ====================================================
@@ -33,10 +35,11 @@ follow the Red Hat Knowledge base about the upgrade process:
 	http://access.redhat.com/article/777777
 ```
 
-If running from a **NON** Engine machine, speficy the arguments:
-
 ``` sh
-# ./pre-upgrade-check --host 192.168.122.116 --dbuser engine --dbpass T0pS3cr3t! --dbport 5432 --dbname engine
+Example 2: found a issue
+
+# ./pre-upgrade-check --host 192.168.122.116 --dbuser engine --dbpass T0pS3cr3t! 
+                      --dbport 5432 --dbname engine
 ====================================================
 Pre-upgrade tool: 0.1
 Connecting to: localhost:5432 Database: test6
