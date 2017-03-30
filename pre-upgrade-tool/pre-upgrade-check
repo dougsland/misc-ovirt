@@ -1,0 +1,293 @@
+#!/usr/bin/python
+#
+# This software is free software; you can redistribute it and/or modify
+# it under the terms of the GNU Lesser General Public License as published by
+# the Free Software Foundation; either version 2.1 of the License, or
+# (at your option) any later version.
+#
+# This library is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU Lesser General Public License for more details.
+#
+# You should have received a copy of the GNU Lesser General Public License
+# along with this library; if not, write to the Free Software
+# Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301
+# USA
+import argparse
+import os
+import psycopg2
+import logging
+import sys
+
+
+class PreUpgrade(object):
+
+    VERSION = "0.1"
+
+    def __init__(self, host, dbname, dbuser, dbpass, dbport):
+        self.logger = self._set_logger()
+
+        self.logger.info('==================================================')
+        self.logger.info('Pre-upgrade tool: {0}'.format(self.VERSION))
+
+        self.host = host
+        self.dbname = dbname
+        self.userdb = dbuser
+        self.passdb = dbpass
+        self.port = dbport
+
+        self.conn = None
+        self.cursor = None
+
+    def _set_logger(self):
+        """
+        The logging settings
+        Saving log in: /tmp/pre-upgrade-tool.log
+        """
+        logger = logging.getLogger(__name__)
+        logger.setLevel(logging.DEBUG)
+        logger.propagate = False
+
+        fh = logging.FileHandler("/tmp/pre-upgrade-tool.log")
+        fh.setLevel(logging.DEBUG)
+        debug_fmt = logging.Formatter("%(asctime)s %(message)s",
+                                      "%m/%d/%Y %I:%M:%S %p")
+
+        try:
+            ih = logging.StreamHandler(stream=sys.stdout)
+        except TypeError:
+            # Python 2 compat
+            ih = logging.StreamHandler(strm=sys.stdout)
+
+        ih.setLevel(logging.INFO)
+        info_fmt = logging.Formatter("%(message)s",
+                                     "%m/%d/%Y %I:%M:%S %p")
+
+        fh.setFormatter(debug_fmt)
+        ih.setFormatter(info_fmt)
+
+        logger.addHandler(fh)
+        logger.addHandler(ih)
+
+        return logger
+
+    def make_db_connection(self):
+        self.logger.info("Connecting to: {0}:{1} Database: {2}".format(
+            parsed_args.host, parsed_args.dbport, parsed_args.dbname))
+        self.logger.info('==================================================')
+
+        try:
+            self.conn = psycopg2.connect(
+                host=self.host,
+                database=self.dbname,
+                user=self.userdb,
+                password=self.passdb,
+                port=self.port
+            )
+        except:
+            raise
+
+        self.cursor = self.conn.cursor()
+
+    def disconnect_db(self):
+        if self.conn:
+            self.conn.close()
+
+        if self.cursor:
+            self.cursor.close()
+
+    def check_inactive_storage(self):
+        self.logger.info("* Checking for inactive storage...")
+
+    def check_paused_vms(self):
+        self.logger.info("* Checking for paused vms..")
+
+    def check_running_tasks_in_engine(self):
+        self.logger.info("* Checking running tasks in engine")
+
+    def check_non_operational_hosts(self):
+        self.logger.info("* Checking for non operational hosts")
+
+    def check_vms_pinned_hosts(self):
+        self.logger.info("* Checking for vms pinned in hosts")
+
+    def check_for_more_than_one_iscsi_connection(self):
+        self.logger.info("* Checking for more than one iscsi connection")
+
+    def check_hosts_in_maintenance(self):
+        self.logger.info("* Checking for hosts in maintenance mode")
+
+    def check_vms_previewing_snapshots(self):
+        self.logger.info("* Checking for vms previewing snapshots")
+
+    def check_hosts_unsync_networks(self):
+        self.logger.info("* Checking for hosts with unsync networks")
+
+    def check_non_default_engine_heap(self):
+        self.logger.info("* Checking for non default engine heap")
+
+    def check_for_3rd_party_certs(self):
+        self.logger.info("* Checking for 3rd party certs")
+
+    def check_kerberos_sso_apache(self):
+        self.logger.info("* Checking for kerberos sso..")
+
+    def check_images_locked(self):
+        self.logger.info("* Checking images locked")
+
+    def check_images_ilegal(self):
+        self.logger.info("* Checking images in illegal mode")
+
+    def check_non_defaul_vdsm(self):
+        self.logger.info("* Checking non default vdsm.conf, persistence=ifcfg")
+
+    def check_modified_engine_conf(self):
+        self.logger.info("* Checking for modified engine.conf")
+
+    def check_vms_running_out_date_clusters(self):
+        self.logger.info("* Checking for vms running out data cluster")
+
+    def check_cluster_no_datacenter(self):
+        self.logger.info("* Checking clusters assigned to datacenters")
+        cmd = 'select name from vds_groups where storage_pool_id IS NULL'
+        self.cursor.execute(cmd)
+
+        ret = self.cursor.fetchall()
+        if len(ret) > 0:
+            raise RuntimeError(
+                    "Found at least one cluster without datacenter assigned!\n"
+                    "Query result: {0}\n"
+                    "Access Knowledge base: "
+                    "http://access.redhat.com/1234567 "
+                    "for more info!".format(ret)
+            )
+
+    def __exit__(self):
+        self.disconnect_db()
+
+
+def engine_conf_data():
+
+    engine_db_conf_file = (
+        '/etc/ovirt-engine/engine.conf.d/10-setup-database.conf'
+    )
+
+    engine_conf = {
+        'host': None,
+        'port': None,
+        'user': None,
+        'password': None,
+        'database': None,
+    }
+
+    if os.path.exists(engine_db_conf_file):
+        with open(engine_db_conf_file) as f:
+            for line in f:
+
+                conf_key, conf_value = line.split('=', 1)
+                conf_value = conf_value.strip('\n')
+
+                # By default the 10-setup-database.conf includes " "
+                # between the values of keys, we should remove it
+                conf_value = conf_value[1:-1]
+
+                if "ENGINE_DB_HOST" in conf_key:
+                    engine_conf['host'] = conf_value
+                elif "ENGINE_DB_PORT" in line:
+                    engine_conf['port'] = int(conf_value)
+                elif "ENGINE_DB_USER" in line:
+                    engine_conf['user'] = conf_value
+                elif "ENGINE_DB_PASSWORD" in line:
+                    engine_conf['password'] = conf_value
+                elif "ENGINE_DB_DATABASE" in line:
+                    engine_conf['database'] = conf_value
+
+    return engine_conf
+
+
+if __name__ == "__main__":
+
+    engine_data = engine_conf_data()
+    parser = argparse.ArgumentParser(
+        description='pre upgrade validation tool',
+        formatter_class=argparse.RawTextHelpFormatter
+    )
+
+    parser.add_argument('--host',
+                        dest='host',
+                        default=engine_data['host'],
+                        help='host or ip address for RHEVM database')
+
+    parser.add_argument('--dbuser',
+                        dest='dbuser',
+                        default=engine_data['user'],
+                        help='postgres username to access the RHEVM database')
+
+    parser.add_argument('--dbpass',
+                        dest='dbpass',
+                        default=engine_data['password'],
+                        help='postgres password to access the RHEVM database')
+
+    parser.add_argument('--dbname',
+                        dest='dbname',
+                        default=engine_data['database'],
+                        help='database name')
+
+    parser.add_argument('--dbport',
+                        dest='dbport',
+                        default=engine_data['port'],
+                        help='database port')
+
+    parsed_args = parser.parse_args()
+
+    if (parsed_args.host is None or parsed_args.dbname is None or
+            parsed_args.dbuser is None or parsed_args.dbpass is None or
+            parsed_args.dbport is None):
+        # We cannot detect 10-setup-database.conf in the system
+        # let's ask user to specify host, dbuser, dbport, dbname, dbpass
+        print(('Running this script outside of the Engine machine \n'
+               'require all options available in --help\n'
+               'i.e: {0} --host IP --dbuser engine --dbpass 12345678 --dbname '
+               'engine --dbport 5432'.format(sys.argv[0])))
+        sys.exit(0)
+
+    preupgrade = PreUpgrade(
+               host=parsed_args.host,
+               dbname=parsed_args.dbname,
+               dbuser=parsed_args.dbuser,
+               dbpass=parsed_args.dbpass,
+               dbport=parsed_args.dbport
+    )
+
+    try:
+        preupgrade.make_db_connection()
+        preupgrade.check_for_more_than_one_iscsi_connection()
+        preupgrade.check_running_tasks_in_engine()
+        preupgrade.check_inactive_storage()
+        preupgrade.check_non_default_engine_heap()
+        preupgrade.check_paused_vms()
+        preupgrade.check_non_operational_hosts()
+        preupgrade.check_vms_previewing_snapshots()
+        preupgrade.check_for_3rd_party_certs()
+        preupgrade.check_hosts_in_maintenance()
+        preupgrade.check_vms_pinned_hosts()
+        preupgrade.check_kerberos_sso_apache()
+        preupgrade.check_images_locked()
+        preupgrade.check_images_ilegal()
+        preupgrade.check_non_defaul_vdsm()
+        preupgrade.check_cluster_no_datacenter()
+        preupgrade.check_modified_engine_conf()
+        preupgrade.check_cluster_no_datacenter()
+    except:
+        preupgrade.logger.exception(
+            'Cannot execute pre-upgrade tool, please check '
+            'the following message:')
+        sys.exit(1)
+
+    preupgrade.logger.info(
+        '\nAll validation passed, please schedule maintenace window and \n'
+        'follow the Red Hat Knowledge base about the upgrade process: \n'
+        '\thttp://access.redhat.com/article/777777')
+
+    sys.exit(0)
