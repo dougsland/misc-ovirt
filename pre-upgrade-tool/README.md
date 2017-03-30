@@ -36,7 +36,7 @@ follow the Red Hat Knowledge base about the upgrade process:
 ```
 
 ``` sh
-Example 2: found a issue
+Example 2: found an issue
 
 # ./pre-upgrade-check --host 192.168.122.116 --dbuser engine --dbpass T0pS3cr3t! 
                       --dbport 5432 --dbname engine
