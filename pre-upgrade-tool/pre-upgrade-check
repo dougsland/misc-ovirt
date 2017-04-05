@@ -108,6 +108,18 @@ class PreUpgrade(object):
 
     def check_non_operational_hosts(self):
         self.logger.info("* Checking for non operational hosts")
+        cmd = 'select vds_name from vds where status=10'
+        self.cursor.execute(cmd)
+
+        ret = self.cursor.fetchall()
+        if len(ret) > 0:
+            raise RuntimeError(
+                "Found at least one host in NON OPERATIONAL mode!\n"
+                "Query result: {0}\n"
+                "Access Knowledge base: "
+                "http://access.redhat.com/1234567 "
+                "for more info!".format(ret)
+            )
 
     def check_vms_pinned_hosts(self):
         self.logger.info("* Checking for vms pinned in hosts")
@@ -117,6 +129,18 @@ class PreUpgrade(object):
 
     def check_hosts_in_maintenance(self):
         self.logger.info("* Checking for hosts in maintenance mode")
+        cmd = 'select vds_name from vds where status=2'
+        self.cursor.execute(cmd)
+
+        ret = self.cursor.fetchall()
+        if len(ret) > 0:
+            raise RuntimeError(
+                "Found at least one host in MAINTENANCE mode!\n"
+                "Query result: {0}\n"
+                "Access Knowledge base: "
+                "http://access.redhat.com/1234567 "
+                "for more info!".format(ret)
+            )
 
     def check_vms_previewing_snapshots(self):
         self.logger.info("* Checking for vms previewing snapshots")
