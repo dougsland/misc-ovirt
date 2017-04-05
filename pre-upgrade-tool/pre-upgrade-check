@@ -97,62 +97,149 @@ class PreUpgrade(object):
         if self.cursor:
             self.cursor.close()
 
-    def check_inactive_storage(self):
+    def check_storage_health(self):
         self.logger.info("* Checking for inactive storage...")
+        status_storage_code = {
+            'Inactive': '4',
+        }
 
-    def check_paused_vms(self):
-        self.logger.info("* Checking for paused vms..")
-        cmd = 'select vm_name from vms where status=4'
+        cmd = (
+            'select storage_name, status from storage_domains '
+            'where status={0}'
+        ).format(
+            status_storage_code['Inactive'],
+        )
         self.cursor.execute(cmd)
 
         ret = self.cursor.fetchall()
         if len(ret) > 0:
-            raise RuntimeError(
-                "Found at least one virtual machine in PAUSE!\n"
-                "Query result: {0}\n"
+            self.logger.info(
+                "Found storage in {0} status!\n"
+                "Query cmd: {1}\n"
+                "Query result: {2}\n"
                 "Access Knowledge base: "
                 "http://access.redhat.com/1234567 "
-                "for more info!".format(ret)
+                "for more info!".format(
+                    [name for name, status in status_storage_code.items()
+                        if status == str(ret[0][1])],
+                    cmd,
+                    ret
+                )
             )
+            raise RuntimeError
+
+    def check_vms_health(self):
+        self.logger.info("* Checking for paused vms..")
+        status_vms_code = {
+            'Paused': '4',
+            'ImageIllegal': '14',
+            'ImageLocked': '15'
+        }
+
+        cmd = (
+            'select vm_name, status from vms '
+            'where status={0} or status={1} or status={2}'
+        ).format(
+            status_vms_code['Paused'],
+            status_vms_code['ImageIllegal'],
+            status_vms_code['ImageLocked']
+        )
+        self.cursor.execute(cmd)
+
+        ret = self.cursor.fetchall()
+        if len(ret) > 0:
+            self.logger.info(
+                "Found virtual machine(s) in {0} status!\n"
+                "Query cmd: {1}\n"
+                "Query result: {2}\n"
+                "Access Knowledge base: "
+                "http://access.redhat.com/1234567 "
+                "for more info!".format(
+                    [name for name, status in status_vms_code.items()
+                        if status == str(ret[0][1])],
+                    cmd,
+                    ret
+                )
+            )
+            raise RuntimeError
+
+    def check_images_health(self):
+        self.logger.info("* Checking images health...")
+
+        status_image_code = {
+            'LOCKED': '2',
+            'ILLEGAL': '4'
+        }
+
+        cmd = (
+            'select image_guid, imagestatus from images '
+            'where imagestatus={0} or imagestatus={1}'
+        ).format(
+            status_image_code['LOCKED']
+            status_image_code['ILLEGAL']
+        )
+        self.cursor.execute(cmd)
+
+        ret = self.cursor.fetchall()
+        if len(ret) > 0:
+            self.logger.info(
+                "Found image(s) in {0} status!\n"
+                "Query cmd: {1}\n"
+                "Query result: {2}\n"
+                "Access Knowledge base: "
+                "http://access.redhat.com/1234567 "
+                "for more info!".format(
+                    [name for name, status in status_image_code.items()
+                        if status == str(ret[0][1])],
+                    cmd,
+                    ret
+                )
+            )
+            raise RuntimeError
 
     def check_running_tasks_in_engine(self):
         self.logger.info("* Checking running tasks in engine")
 
-    def check_non_operational_hosts(self):
-        self.logger.info("* Checking for non operational hosts")
-        cmd = 'select vds_name from vds where status=10'
+    def check_hosts_health(self):
+        self.logger.info("* Checking for hosts health..")
+        status_hosts_code = {
+            'Maintenance': '2',
+            'Error': '5',
+            'Non_Operational': '10'
+        }
+
+        cmd = (
+            'select vds_name, status from vds '
+            'where status={0} or status={1} or status={2}'
+        ).format(
+            status_hosts_code['Maintenance'],
+            status_hosts_code['Error'],
+            status_hosts_code['Non_Operational']
+        )
         self.cursor.execute(cmd)
 
         ret = self.cursor.fetchall()
         if len(ret) > 0:
-            raise RuntimeError(
-                "Found at least one host in NON OPERATIONAL mode!\n"
-                "Query result: {0}\n"
+            self.logger.info(
+                "Found host(s) in {0} status!\n"
+                "Query cmd: {1}\n"
+                "Query result: {2}\n"
                 "Access Knowledge base: "
                 "http://access.redhat.com/1234567 "
-                "for more info!".format(ret)
+                "for more info!".format(
+                    [name for name, status in status_hosts_code.items()
+                        if status == str(ret[0][1])],
+                    cmd,
+                    ret
+                )
             )
+            raise RuntimeError
 
     def check_vms_pinned_hosts(self):
         self.logger.info("* Checking for vms pinned in hosts")
 
     def check_for_more_than_one_iscsi_connection(self):
         self.logger.info("* Checking for more than one iscsi connection")
-
-    def check_hosts_in_maintenance(self):
-        self.logger.info("* Checking for hosts in maintenance mode")
-        cmd = 'select vds_name from vds where status=2'
-        self.cursor.execute(cmd)
-
-        ret = self.cursor.fetchall()
-        if len(ret) > 0:
-            raise RuntimeError(
-                "Found at least one host in MAINTENANCE mode!\n"
-                "Query result: {0}\n"
-                "Access Knowledge base: "
-                "http://access.redhat.com/1234567 "
-                "for more info!".format(ret)
-            )
 
     def check_vms_previewing_snapshots(self):
         self.logger.info("* Checking for vms previewing snapshots")
@@ -168,12 +255,6 @@ class PreUpgrade(object):
 
     def check_kerberos_sso_apache(self):
         self.logger.info("* Checking for kerberos sso..")
-
-    def check_images_locked(self):
-        self.logger.info("* Checking images locked")
-
-    def check_images_ilegal(self):
-        self.logger.info("* Checking images in illegal mode")
 
     def check_non_defaul_vdsm(self):
         self.logger.info("* Checking non default vdsm.conf, persistence=ifcfg")
@@ -298,27 +379,23 @@ if __name__ == "__main__":
 
     try:
         preupgrade.make_db_connection()
-        preupgrade.check_for_more_than_one_iscsi_connection()
+        preupgrade.check_storage_health()
+        preupgrade.check_vms_health()
+        preupgrade.check_hosts_health()
+        preupgrade.check_images_health()
         preupgrade.check_running_tasks_in_engine()
-        preupgrade.check_inactive_storage()
+        preupgrade.check_for_more_than_one_iscsi_connection()
         preupgrade.check_non_default_engine_heap()
-        preupgrade.check_paused_vms()
-        preupgrade.check_non_operational_hosts()
         preupgrade.check_vms_previewing_snapshots()
         preupgrade.check_for_3rd_party_certs()
-        preupgrade.check_hosts_in_maintenance()
         preupgrade.check_vms_pinned_hosts()
         preupgrade.check_kerberos_sso_apache()
-        preupgrade.check_images_locked()
-        preupgrade.check_images_ilegal()
         preupgrade.check_non_defaul_vdsm()
         preupgrade.check_cluster_no_datacenter()
         preupgrade.check_modified_engine_conf()
         preupgrade.check_cluster_no_datacenter()
     except:
-        preupgrade.logger.exception(
-            'Cannot execute pre-upgrade tool, please check '
-            'the following message:')
+        preupgrade.logger.exception('Cannot execute pre-upgrade tool!')
         sys.exit(1)
 
     preupgrade.logger.info(
