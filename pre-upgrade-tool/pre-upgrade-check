@@ -102,6 +102,18 @@ class PreUpgrade(object):
 
     def check_paused_vms(self):
         self.logger.info("* Checking for paused vms..")
+        cmd = 'select vm_name from vms where status=4'
+        self.cursor.execute(cmd)
+
+        ret = self.cursor.fetchall()
+        if len(ret) > 0:
+            raise RuntimeError(
+                "Found at least one virtual machine in PAUSE!\n"
+                "Query result: {0}\n"
+                "Access Knowledge base: "
+                "http://access.redhat.com/1234567 "
+                "for more info!".format(ret)
+            )
 
     def check_running_tasks_in_engine(self):
         self.logger.info("* Checking running tasks in engine")
