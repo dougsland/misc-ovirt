@@ -197,9 +197,6 @@ class PreUpgrade(object):
             )
             raise RuntimeError
 
-    def check_running_tasks_in_engine(self):
-        self.logger.info("* Checking running tasks in engine")
-
     def check_hosts_health(self):
         self.logger.info("* Checking for hosts health..")
         status_hosts_code = {
@@ -235,6 +232,25 @@ class PreUpgrade(object):
             )
             raise RuntimeError
 
+    def check_cluster_no_datacenter(self):
+        self.logger.info("* Checking clusters assigned to datacenters")
+        cmd = 'select name from vds_groups where storage_pool_id IS NULL'
+        self.cursor.execute(cmd)
+
+        ret = self.cursor.fetchall()
+        if len(ret) > 0:
+            raise RuntimeError(
+                    "Found at least one cluster without datacenter assigned!\n"
+                    "Query result: {0}\n"
+                    "Access Knowledge base: "
+                    "http://access.redhat.com/1234567 "
+                    "for more info!".format(ret)
+            )
+
+    def check_running_tasks_in_engine(self):
+        self.logger.info("* Checking running tasks in engine")
+
+
     def check_vms_pinned_hosts(self):
         self.logger.info("* Checking for vms pinned in hosts")
 
@@ -265,20 +281,6 @@ class PreUpgrade(object):
     def check_vms_running_out_date_clusters(self):
         self.logger.info("* Checking for vms running out data cluster")
 
-    def check_cluster_no_datacenter(self):
-        self.logger.info("* Checking clusters assigned to datacenters")
-        cmd = 'select name from vds_groups where storage_pool_id IS NULL'
-        self.cursor.execute(cmd)
-
-        ret = self.cursor.fetchall()
-        if len(ret) > 0:
-            raise RuntimeError(
-                    "Found at least one cluster without datacenter assigned!\n"
-                    "Query result: {0}\n"
-                    "Access Knowledge base: "
-                    "http://access.redhat.com/1234567 "
-                    "for more info!".format(ret)
-            )
 
     def __exit__(self):
         self.disconnect_db()
