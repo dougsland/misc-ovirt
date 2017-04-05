@@ -250,7 +250,6 @@ class PreUpgrade(object):
     def check_running_tasks_in_engine(self):
         self.logger.info("* Checking running tasks in engine")
 
-
     def check_vms_pinned_hosts(self):
         self.logger.info("* Checking for vms pinned in hosts")
 
