@@ -172,8 +172,8 @@ class PreUpgrade(object):
         }
 
         cmd = (
-            'select image_guid, imagestatus from images '
-            'where imagestatus={0} or imagestatus={1}'
+            'select image_guid, imagestatus from images'
+            ' where imagestatus={0} or imagestatus={1}'
         ).format(
             status_image_code['LOCKED'],
             status_image_code['ILLEGAL']
@@ -250,19 +250,35 @@ class PreUpgrade(object):
     def check_running_tasks_in_engine(self):
         self.logger.info("* Checking running tasks in engine")
         cmd = (
-            'select '
-                'async_tasks.action_type,'
-                'async_tasks.task_id,'
-                'async_tasks.started_at,'
-                'storage_pool.name'
-            ' from async_tasks, storage_pool'
-            ' where async_tasks.storage_pool_id = storage_pool.id'
+            'select async_tasks.action_type, async_tasks.task_id,'
+            ' async_tasks.started_at, storage_pool.name '
+            'from async_tasks, storage_pool where'
+            ' async_tasks.storage_pool_id = storage_pool.id'
         )
 
         ret = self.cursor.fetchall()
         if len(ret) > 0:
             raise RuntimeError(
                     "Found at one task running in engine!\n"
+                    "Query cmd: {1}\n"
+                    "Query result: {0}\n"
+                    "Access Knowledge base: "
+                    "http://access.redhat.com/1234567 "
+                    "for more info!".format(cmd, ret)
+            )
+
+        self.check_compensation_tasks()
+
+    def check_compensation_tasks(self):
+        self.logger.info("* Checking compensation tasks in engine")
+        cmd = (
+            'select command_type, entity_type from business_entity_snapshot'
+        )
+
+        ret = self.cursor.fetchall()
+        if len(ret) > 0:
+            raise RuntimeError(
+                    "Found at one compensation task running in engine!\n"
                     "Query cmd: {1}\n"
                     "Query result: {0}\n"
                     "Access Knowledge base: "
