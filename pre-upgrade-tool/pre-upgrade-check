@@ -280,7 +280,6 @@ class PreUpgrade(object):
     def check_vms_running_out_date_clusters(self):
         self.logger.info("* Checking for vms running out data cluster")
 
-
     def __exit__(self):
         self.disconnect_db()
 
