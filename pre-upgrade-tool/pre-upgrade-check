@@ -261,6 +261,7 @@ class PreUpgrade(object):
             'from async_tasks, storage_pool where'
             ' async_tasks.storage_pool_id = storage_pool.id'
         )
+        self.cursor.execute(cmd)
 
         ret = self.cursor.fetchall()
         if len(ret) > 0:
@@ -296,17 +297,44 @@ class PreUpgrade(object):
                     "for more info!".format(cmd, ret)
             )
 
-
     def check_compensation_tasks(self):
         self.logger.info("* Checking compensation tasks in engine")
         cmd = (
             'select command_type, entity_type from business_entity_snapshot'
         )
+        self.cursor.execute(cmd)
 
         ret = self.cursor.fetchall()
         if len(ret) > 0:
             raise RuntimeError(
                     "Found at one compensation task running in engine!\n"
+                    "Query cmd: {1}\n"
+                    "Query result: {0}\n"
+                    "Access Knowledge base: "
+                    "http://access.redhat.com/1234567 "
+                    "for more info!".format(cmd, ret)
+            )
+
+    def check_vms_running_out_date_clusters(self):
+        """
+        In oVirt Engine 4.0, the minimum cluster level supported is 3.6.
+        So we must raise exception in case, there is vm in 3.5 cluster level
+        """
+        self.logger.info("* Checking for vms running out data cluster")
+
+        cmd = (
+            'select vm_name, vds_group_compatibility_version from vms'
+            ' where vds_group_compatibility_version is not null and '
+            'vds_group_compatibility_version <> \'\' and '
+            'vds_group_compatibility_version < \'3.6\''
+        )
+        print(cmd)
+        self.cursor.execute(cmd)
+
+        ret = self.cursor.fetchall()
+        if len(ret) > 0:
+            raise RuntimeError(
+                    "Found vms machines with compatibility cluster < 3.6\n"
                     "Query cmd: {1}\n"
                     "Query result: {0}\n"
                     "Access Knowledge base: "
@@ -340,9 +368,6 @@ class PreUpgrade(object):
 
     def check_modified_engine_conf(self):
         self.logger.info("* Checking for modified engine.conf")
-
-    def check_vms_running_out_date_clusters(self):
-        self.logger.info("* Checking for vms running out data cluster")
 
     def __exit__(self):
         self.disconnect_db()
